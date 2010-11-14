@@ -64,66 +64,80 @@ struct action_lookup  ac_lookup_table[] = {
 
 ev_list *head = NULL;
 
-static int
+static ev_list *
+alloc_event(long evid)
+{
+	ev_list *item;
+
+	item = emalloc(sizeof(ev_list));
+	item->id = evid;
+	item->next = NULL;
+	memset(item->action, 0, sizeof(item->action));
+	return item;
+}
+
+static void 
+free_action_list(ev_list *item)
+{
+	int i;
+	for(i=0; i < MAXACTIONS && item->action[i]; i++)
+	{
+		free(item->action[i]->options[0]);
+		free(item->action[i]);
+		item->action[i] = NULL;
+	}
+}
+
+static ev_list *
 new_event(long evid) {
-	ev_list *item, *newitem;
+	ev_list *item;
 
 	if(!head) {
-		head = emalloc(sizeof (ev_list));
-		head->id = evid;
-		head->next = NULL;
+		return head = alloc_event(evid);
 	}
-	else {
-		item = head;
-		/* check if we already handle this event */
-		while(item) {
-			if(item->id == evid)
-				return 0;
-			item = item->next;
+	item = head;
+	/* check if we already handle this event */
+	while(1) {
+		if(item->id == evid)
+		{
+			free_action_list(item);
+			return item;
 		}
-		item = head;
-		while(item->next)
-			item = item->next;
-
-		newitem = emalloc(sizeof (ev_list));
-		newitem->id = evid;
-		item->next = newitem;
-		newitem->next = NULL;
+		if (!item->next)
+			break;
+		item = item->next;
 	}
-	return 0;
+
+	return item->next = alloc_event(evid);
+}
+
+static As *
+add_handler(ev_list *item, int hpos, handlerf* hcb) {
+	if(hpos >= MAXACTIONS)
+		return NULL;
+
+	item->action[hpos] = emalloc(sizeof(As));
+	item->action[hpos]->handler = hcb;
+	item->action[hpos]->options[0] = NULL;
+	return item->action[hpos];
 }
 
 static void
-add_handler(long evid, int hpos, handlerf* hcb) {
-	ev_list *item;
+fill_options(As *as, char *opts) {
+	char *dptoken, *saveptr4=NULL;
+	int i;
 
-	item = head;
-	while(item) {
-		if(item->id == evid) {
-			if(hpos < MAXACTIONS) {
-				item->action[hpos] = emalloc(sizeof(As));
-				item->action[hpos]->handler = hcb;
-			}
-			break;
-		}
-		item = item->next;
+	if (!opts || !*opts)
+	{
+		as->options[0] = NULL;
+		return;
 	}
-}
 
-static void
-add_option(long evid, int hpos, int opos, char* opt) {
-	ev_list *item;
-
-	item = head;
-	while(item) {
-		if(item->id == evid) {
-			if(opos < MAXOPTIONS) {
-				item->action[hpos]->options[opos] = estrdup(opt);
-				item->action[hpos]->options[opos+1] = NULL;
-			}
-			break;
-		}
-		item = item->next;
+	as->options[0] = estrdup(opts);
+	dptoken = strtok_r(as->options[0], ":", &saveptr4);
+	for (i = 1; dptoken && i < MAXOPTIONS-1; i++) {
+		dptoken = strtok_r(NULL, ":", &saveptr4);
+		as->options[i] = dptoken;
 	}
 }
 
@@ -154,7 +168,7 @@ do_action(long evid) {
 	}
 
 	if(item) {
-		for(i=0; item->action[i]->handler; i++) {
+		for(i=0; i < MAXACTIONS && item->action[i]->handler; i++) {
 			item->action[i]->handler(item->action[i]->options);
 		}
 	}
@@ -190,76 +204,67 @@ get_action_handler(const char *acname) {
 	return NULL;
 }
 
-
 void
 free_event_list(void) {
-	int i;
 	ev_list *item;
 
-	item = head;
-	while(item) {
-		for(i=0; item->action[i]->handler; i++)
-			free(item->action[i]);
-		item = item->next;
+	while(head) {
+		item = head;
+		head = item->next;
+		free_action_list(item);
+		free(item);
 	}
+}
+
+static void
+fill_ev_entry(long eid, char *action)
+{
+	char *str3,
+		 *kommatoken, *dptoken;
+	char *saveptr3=NULL;
+	int i=0;
+	handlerf *ah=0;
+	ev_list *item;
+	As *as;
+
+	item = new_event(eid);
+
+	if (action) for (str3 = action; ; str3 = NULL) {
+		kommatoken = strtok_r(str3, ",", &saveptr3);
+		if (kommatoken == NULL)
+			break;
+
+		if ((dptoken = strchr(kommatoken, ':')))
+			*dptoken++ = 0;
+
+		ah = get_action_handler(kommatoken);
+		if (!ah) /* unknown action */
+			continue;
+
+		as = add_handler(item, i++, ah);
+		if (as)
+			fill_options(as, dptoken);
+	}
+	add_handler(item, i++, NULL);
 }
 
 void
 fill_ev_table(char *input) {
-	char *str1, *str2, *str3, *str4,
-		 *token, *subtoken, *kommatoken, *dptoken;
-	char *saveptr1=NULL,
-		 *saveptr2=NULL,
-		 *saveptr3=NULL,
-		 *saveptr4=NULL;
-	int j, i=0, k=0;
+	char *str1, *token, *value;
+	char *saveptr1=NULL;
 	long eid=0;
-	handlerf *ah=0;
 
-	for (j = 1, str1 = input; ; j++, str1 = NULL) {
+	for (str1 = input; ; str1 = NULL) {
 		token = strtok_r(str1, ";", &saveptr1);
 		if (token == NULL)
 			break;
 
-		for (str2 = token; ; str2 = NULL) {
-			subtoken = strtok_r(str2, "=", &saveptr2);
-			if (subtoken == NULL)
-				break;
-			if( (str2 == token) && ((eid = get_ev_id(subtoken)) != -1))
-				;
-			else if(eid == -1)
-				break;
-
-			for (str3 = subtoken; ; str3 = NULL) {
-				kommatoken = strtok_r(str3, ",", &saveptr3);
-				if (kommatoken == NULL)
-					break;
-
-				for (str4 = kommatoken; ; str4 = NULL) {
-					dptoken = strtok_r(str4, ":", &saveptr4);
-					if (dptoken == NULL) {
-						break;
-					}
-					if(str4 == kommatoken && str4 != token && eid != -1) {
-						if((ah = get_action_handler(dptoken)) != NULL) {
-							new_event(eid);
-							add_handler(eid, i, ah);
-							i++;
-						}
-					}
-					else if(str4 != token && eid != -1 && ah) {
-						add_option(eid, i-1, k, dptoken);
-						k++;
-					}
-					else if(!ah)
-						break;
-				}
-				k=0;
-			}
-			new_event(eid);
-			add_handler(eid, i, NULL);
-			i=0;
-		}
+		if ((value = strchr(token, '=')))
+			*value++ = 0;
+		eid = get_ev_id(token);
+		if (eid == -1) /* unknown event */
+			continue;
+		fill_ev_entry(eid, value);
 	}
 }
 

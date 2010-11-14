@@ -335,7 +335,7 @@ An example:
         -e 'enterslave=grabkeys;leaveslave=ungrabkeys;
             button4=scrollup;button5=scrolldown;
             key_Left=scrollup;key_Right=scrolldown;
-            button1=menuexec;button3=exit:13
+            button1=menuexec;button3=exit:13;
             key_Escape=ungrabkeys,exit'
 
 
