@@ -269,6 +269,7 @@ Supported actions:
     exit:retval         exit dzen and return 'retval'
     print:str1:...:n    write all given options to STDOUT
     menuprint           write selected menu entry to STDOUT
+    xevent:TYPE:l0:..:n send XEvent TYPE with long arguments (e.g., for XMonad's ServerMode)
     collapse            collapse (roll-up) slave window
     uncollapse          uncollapse (roll-down) slave window
     togglecollapse      toggle collapsed state

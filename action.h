@@ -61,6 +61,7 @@ int find_event(long);
 int a_print(char **);
 int a_exit(char **);
 int a_exec(char **);
+int a_xevent(char **);
 int a_collapse(char **);
 int a_uncollapse(char **);
 int a_togglecollapse(char **);

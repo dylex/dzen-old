@@ -36,6 +36,7 @@ struct action_lookup  ac_lookup_table[] = {
 	{ "print",          a_print },
 	{ "exec",           a_exec},
 	{ "exit",           a_exit},
+	{ "xevent",         a_xevent},
 	{ "collapse",       a_collapse},
 	{ "uncollapse",     a_uncollapse},
 	{ "togglecollapse",	a_togglecollapse},
@@ -430,6 +431,28 @@ a_exec(char * opt[]) {
 	if(opt)
 		for(i=0; opt[i]; i++)
 			if(opt[i]) spawn(opt[i]);
+	return 0;
+}
+
+int
+a_xevent(char * opt[]) {
+	XClientMessageEvent e = { ClientMessage };
+	int i;
+
+	if(!opt || !opt[0] || !*opt[0])
+		return 0;
+
+	e.display = dzen.dpy;
+	e.window = RootWindow(dzen.dpy, dzen.screen);
+	e.message_type = XInternAtom(dzen.dpy, opt[0], True);
+	if(e.message_type == None)
+		return 0;
+	e.format = 32;
+	for(i=0; i < 5 && opt[i+1]; i++)
+		e.data.l[i] = atoi(opt[i+1]);
+
+	XSendEvent(e.display, e.window, False, StructureNotifyMask, (XEvent *)&e);
+
 	return 0;
 }
 
