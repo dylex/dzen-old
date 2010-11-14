@@ -272,7 +272,7 @@ fill_ev_table(char *input) {
 /* actions */
 int
 a_exit(char * opt[]) {
-	if(opt[0])
+	if(opt && opt[0])
 		dzen.ret_val = atoi(opt[0]);
 	dzen.running = False;
 	return 0;
@@ -368,7 +368,7 @@ int
 a_scrollup(char * opt[]) {
 	int n=1;
 
-	if(opt[0])
+	if(opt && opt[0])
 		n = atoi(opt[0]);
 	if(dzen.slave_win.max_lines)
 			scroll(-1*n);
@@ -380,7 +380,7 @@ int
 a_scrolldown(char * opt[]) {
 	int n=1;
 
-	if(opt[0])
+	if(opt && opt[0])
 		n = atoi(opt[0]);
 	if(dzen.slave_win.max_lines)
 		scroll(n);
