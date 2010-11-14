@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef DZEN_XPM
 #include <X11/xpm.h>
 #endif
@@ -216,12 +217,11 @@ setcolor(Drawable *pm, int x, int width, long tfg, long tbg, int reverse, int no
 }
 
 int 
-get_sens_area(char *s, int *b, char *cmd) {
-	memset(cmd, 0, 1024);
-    sscanf(s, "%5d", b);
+get_sens_area(char *s, int i) {
+    sens_areas[i].button = atoi(s);
     char *comma = strchr(s, ',');
-    if (comma != NULL)
-        strncpy(cmd, comma+1, 1024);
+    if (comma) while (isspace(*++comma));
+    fill_ev_action(clickmarker+i, comma);
 
 	return 0;
 }
@@ -735,9 +735,7 @@ parse_line(const char *line, int lnr, int align, int reverse, int nodraw) {
 							if(lnr == -1) {
 								if(tval[0]) {
 									if(sens_areas_cnt < MAX_CLICKABLE_AREAS) {
-										get_sens_area(tval, 
-												&sens_areas[sens_areas_cnt].button, 
-												sens_areas[sens_areas_cnt].cmd);
+										get_sens_area(tval, sens_areas_cnt);
 										sens_areas[sens_areas_cnt].start_x = px;
 										sens_areas[sens_areas_cnt].start_y = py;
 										sens_areas[sens_areas_cnt].end_y = py;

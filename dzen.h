@@ -68,7 +68,6 @@ typedef struct _CLICK_A {
 	int end_x;
 	int start_y;
 	int end_y;
-	char cmd[1024];
 } click_a;
 extern click_a sens_areas[MAX_CLICKABLE_AREAS];
 extern int sens_areas_cnt;

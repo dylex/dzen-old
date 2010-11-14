@@ -451,18 +451,18 @@ Positioning:
 Interaction:
 ------------
 
-    ^ca(BTN, CMD) ... ^ca()      
+    ^ca(BTN, ACT) ... ^ca()      
 
                        Used to define 'clickable areas' anywhere inside the
                        title window. 
                        - 'BTN' denotes the mouse button (1=left, 2=right, 3=middle, etc.) 
-                       - 'CMD' denotes the command that should be spawned when the specific
+                       - 'ACT' denotes the action that should be executed when the specific
                          area has been clicked with the defined button
                        - '...' denotes any text or formating commands dzen accepts
                        - '^ca()' without arguments denotes the end of this clickable area
 
                        Example:
-                         foo ^ca(1, echo one)^fg(red)click me and i'll echo one^fg()^ca() bar
+                         foo ^ca(1, print:one)^fg(red)click me and i'll echo one^fg()^ca() bar
                         
 Actions as commands:
 --------------------

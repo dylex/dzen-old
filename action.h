@@ -24,7 +24,9 @@ enum ev_id {
 	/* key event marker 
 	 * must always be the last entry
 	 */
-	keymarker
+	evmarker
+#define clickmarker evmarker
+#define keymarker   (clickmarker+MAX_CLICKABLE_AREAS)
 };
 
 struct _ev_list {
@@ -53,6 +55,7 @@ struct AS {
 void do_action(long);
 int get_ev_id(const char *);
 handlerf *get_action_handler(const char *);
+void fill_ev_action(long, char *);
 void fill_ev_table(char *);
 void free_event_list(void);
 int find_event(long);

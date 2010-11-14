@@ -216,8 +216,8 @@ free_event_list(void) {
 	}
 }
 
-static void
-fill_ev_entry(long eid, char *action)
+void
+fill_ev_action(long eid, char *action)
 {
 	char *str3,
 		 *kommatoken, *dptoken;
@@ -264,7 +264,7 @@ fill_ev_table(char *input) {
 		eid = get_ev_id(token);
 		if (eid == -1) /* unknown event */
 			continue;
-		fill_ev_entry(eid, value);
+		fill_ev_action(eid, value);
 	}
 }
 
