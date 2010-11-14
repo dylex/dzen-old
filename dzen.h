@@ -64,6 +64,7 @@ struct Fnt {
 typedef struct _CLICK_A {
     int active;
 	int button;
+	int line;
 	int start_x;
 	int end_x;
 	int start_y;

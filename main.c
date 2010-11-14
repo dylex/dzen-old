@@ -703,7 +703,11 @@ handle_xev(void) {
 
 			/* clickable areas */
              for(i=sens_areas_cnt-1; i>=0; i--) {
-				if(ev.xbutton.window == dzen.title_win.win &&
+				if((sens_areas[i].line < 0 ? 
+							ev.xbutton.window == dzen.title_win.win : 
+							sens_areas[i].line >= dzen.slave_win.first_line_vis &&
+							sens_areas[i].line <= dzen.slave_win.last_line_vis &&
+							ev.xbutton.window == dzen.slave_win.line[sens_areas[i].line-dzen.slave_win.first_line_vis]) &&
 						ev.xbutton.button == sens_areas[i].button &&
 						(ev.xbutton.x >=  sens_areas[i].start_x+xorig &&
 						ev.xbutton.x <=  sens_areas[i].end_x+xorig) &&

@@ -732,10 +732,10 @@ parse_line(const char *line, int lnr, int align, int reverse, int nodraw) {
 							font_was_set = 1;
 							break;
 						case ca:
-							if(lnr == -1) {
 								if(tval[0]) {
 									if(sens_areas_cnt < MAX_CLICKABLE_AREAS) {
 										get_sens_area(tval, sens_areas_cnt);
+										sens_areas[sens_areas_cnt].line = lnr >= 0 ? dzen.slave_win.first_line_vis+lnr : lnr;
 										sens_areas[sens_areas_cnt].start_x = px;
 										sens_areas[sens_areas_cnt].start_y = py;
 										sens_areas[sens_areas_cnt].end_y = py;
@@ -755,7 +755,6 @@ parse_line(const char *line, int lnr, int align, int reverse, int nodraw) {
 
 									}
 								}
-							}
 							break;
 						case ba:
 							if(tval[0])
